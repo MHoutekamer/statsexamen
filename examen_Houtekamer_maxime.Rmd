@@ -156,6 +156,7 @@ time<-c(rep(1:5,(42)),rep(1:3,(48)))
 
 d2<-data.frame(id,group,tasktime,time)
 
+print(d2)
 ##convert variables to factor
 d2<-within(d2, {
   group<-factor(group)
@@ -171,6 +172,168 @@ with(d2,interaction.plot(time, group, tasktime,
 d2.aov<-aov(tasktime ~ group * time + Error(id), data=d2)
 summary(d2.aov)
 
+
+
+
 ```
+model.cs <- gls(tasktime ~ group * time , data = d2,
+  corr = corCompSymm(, form = ~ 1 | id) )
+
+summary(model.cs)
 
 The between group tests indicates that the variable group is significant. consequently, int he graph we see that the liens for the two groups are rather far apart. The within subject test indicates that there is a significant time effect, inother words, the groups do change other time, both groups are taking less time to complete the task over time. Morover, the interaction of time and group is significant which means that the groups are changing over time but are changing in different ways, which means that in the graph, the liens will not be parallel.
+
+## Are there structures that are differentially activated depending on the duration of the training?
+
+I think the best option here is MANOVA. 
+I used this video first https://www.youtube.com/watch?v=48cZ2cMBpio
+```{r manova}
+
+manova1<-manova( cbind(STLD,STMD,AMBASLAT,AMLAT,ENTORH,PERIRH,CA1,CA3,DG,CINGULAR,PRELIMB,SOMSENS,SUBICULUM,ACCCORE,ACCSHELL,VISUAL,PIRIFORM,PARIETAL,RETROSPLEN)~as.factor(TRAIN),data=data1)
+summary(manova1)
+```
+
+I don't think these results are helpful at all. So there are areas that differ.. ok..
+
+Lets do t-tests...
+```{r t hell}
+factorlist<-c((rep("d5h",24)),(rep("d5sh",18)),(rep("d3h",24)),(rep("d3sh",24)))
+variablelist<-c(d5h[,3],d5sh[,3],d3h[,3],d3sh[,3])
+d1<-data.frame(factorlist,variablelist)
+colnames(d1)<-c("exp","values")
+f1<-d1$values~d1$exp
+```
+
+## What are the structure activities that are correlated with performance (in the last training session) ?
+
+Ok. So we need a correlation. then we need a matrix.
+
+```{r corrmatrix}
+library(Hmisc)
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+    )
+}
+
+cordata<-cbind(data1[,3:21],data1[,24],data1[,26])
+final<-c(data1[c(1:24,73:90),26],data1[c(25:72),24])
+pooledcordata<-cbind(data1[,3:21],final)
+cordataD5H<-cordata[1:24,c(1:6,10:19,21)]
+cordataD3H<-cordata[25:48,1:20]
+cordataD5SH<-cordata[73:90,c(1:19,21)]
+cordataD3SH<-cordata[49:72,1:20]
+
+resp<-rcorr(as.matrix(pooledcordata))
+matrixp<-flattenCorrMatrix(resp$r, resp$P)
+print(matrixp[172:190,])
+
+res1<-rcorr(as.matrix(cordataD5H))
+matrix1<-flattenCorrMatrix(res1$r, res1$P)
+print(matrix1[121:136,])
+
+res2<-rcorr(as.matrix(cordataD3H))
+matrix2<-flattenCorrMatrix(res2$r, res2$P)
+print(matrix2[172:190,])
+
+res3<-rcorr(as.matrix(cordataD3SH))
+matrix3<-flattenCorrMatrix(res3$r, res3$P)
+print(matrix3[172:190,])
+
+res4<-rcorr(as.matrix(cordataD5SH))
+matrix4<-flattenCorrMatrix(res4$r, res4$P)
+print(matrix4[172:190,])
+```
+
+First took all the data to see whether they are normally distributed or not:
+per brain area per group
+4 groups, 
+lesion vs. non lesion
+depending on normality: t test or wilcox
+
+
+
+#NORMAL DISTIBUTION?
+We will carry out the shapiro-Wilk test. If p>a (bigger than 0.05 generally), the data is normal.
+```{r shapiro tests, echo=FALSE, results="hide"}
+d5hc<-d5h[,c(1:8,12:26)]
+for(i in 3:18){
+  print(i)
+  print(shapiro.test(d5hc[,i]))
+}
+for(i in 3:21){
+  print(i)
+  print(shapiro.test(d5sh[,i]))
+}
+d3hc<-d3h[,c(1:8,12:26)]
+for(i in 3:18){
+  print(i)
+  print(shapiro.test(d3hc[,i]))
+}
+for(i in 3:21){
+  print(i)
+  print(shapiro.test(d3sh[,i]))
+}
+
+```
+d5h[,c(3,17,20,21)] are not normally distributed
+d5sh[,c(3)] is not normally distributed
+d3h[,c(15,21)] are not normally distributed
+d3sh[,c(3,8,2,14,16,18)] is not normally distributed.
+You have a small sample size but the population is actually normally distributed, so we will use a parametric test anyway
+
+# ok fuck this shit let's do a t test for all these fuckers
+
+t.test(collumn 1, collumn 2)
+ skip collumns 9:11 for d3h vs d5h
+```{r fucking t test, results="hide"}
+for(i in c(3:8,12:21)){
+  print(t.test(d3h[,i],d5h[,i]))
+}  
+for(i in c(3:21)){
+  print(t.test(d3sh[,i],d5sh[,i]))
+}
+```
+##FIGURETIME.
+
+```{r figures, echo=FALSE}
+meand3h<-vector()
+meand5h<-vector()
+meand3sh<-vector()
+meand5sh<-vector()
+for(i in c(3:8,12:21)){
+  x<-mean(d3h[,i])
+  meand3h<-c(meand3h,x)
+} 
+for(i in c(3:8,12:21)){
+  x<-mean(d5h[,i])
+  meand5h<-c(meand5h,x)
+}
+for(i in c(3:21)){
+  x<-mean(d3sh[,i])
+  meand3sh<-c(meand3sh,x)
+}
+for(i in c(3:21)){
+  x<-mean(d5sh[,i])
+  meand5sh<-c(meand5sh,x)
+}
+
+library(ggplot2)
+library(reshape)
+
+
+x = colnames(data[,c(3:8,12:21)])
+y1 = meand3h
+y2 = meand5h
+
+to_plot <- data.frame(x=x,y1=y1,y2=y2)
+melted<-melt(to_plot, id="x")
+
+print(ggplot(melted,aes(x=x,y=value,fill=variable)) + geom_bar(stat="identity", alpha=1),main="Activation of brain areas after training",
+   xlab="", ylab="Level of activation")
+```
+
