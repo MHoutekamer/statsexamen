@@ -2,7 +2,7 @@
 title: "Statistics Examen_NeuroBIM"
 author: "Maxime Houtekamer"
 date: "16 november 2015"
-output: pdf_document
+output: word_document
 ---
 #Loading the data file into R
 First of all, the data was loaded into R from the textfile. A summary of the data was obtained as an indication whether the data was correctly loaded into R.
@@ -115,23 +115,23 @@ hist(d5sh[,26],main="Five day training\n + lesion")
 #Day 1
 ```{r normal distribution of learning 9, echo=FALSE}
 par(mfrow=c(3,3))
-hist(d5h[,22],main="D1 Five day training\n + no lesion",breaks=8,ylim = c(0,10))
-hist(d5sh[,22],main="D1 Five day training\n + lesion",breaks=8,ylim = c(0,10))
-hist(d3h[,22],main="D1 Three day training\n + no lesion",breaks=8,ylim = c(0,11))
-hist(d3sh[,22],main="D1 Three day training\n + lesion",breaks=8,ylim = c(0,10))
-hist(d5h[,23],main="D2 Five day training\n + no lesion",breaks=8,ylim = c(0,10))
-hist(d5sh[,23],main="D2 Five day training\n + lesion",breaks=8,ylim = c(0,10))
-hist(d3h[,23],main="D2 Three day training\n + no lesion",breaks=8,ylim = c(0,10))
-hist(d3sh[,23],main="D2 Three day training\n + lesion",breaks=8,ylim = c(0,10))
-hist(d5h[,24],main="D3 Five day training\n + no lesion",breaks=8,ylim = c(0,10))
+hist(d5h[,22],main="D1 Five day training\n + no lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
+hist(d5sh[,22],main="D1 Five day training\n + lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
+hist(d3h[,22],main="D1 Three day training\n + no lesion",breaks=8,ylim = c(0,11),xlab = "Time in maze")
+hist(d3sh[,22],main="D1 Three day training\n + lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
+hist(d5h[,23],main="D2 Five day training\n + no lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
+hist(d5sh[,23],main="D2 Five day training\n + lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
+hist(d3h[,23],main="D2 Three day training\n + no lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
+hist(d3sh[,23],main="D2 Three day training\n + lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
+hist(d5h[,24],main="D3 Five day training\n + no lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
 par(mfrow=c(3,3))
-hist(d5sh[,24],main="D3 Five day training\n + lesion",breaks=8,ylim = c(0,10))
-hist(d3h[,24],main="D3 Three day training\n + no lesion",breaks=8,ylim = c(0,10))
-hist(d3sh[,24],main="D3 Three day training\n + lesion",breaks=8,ylim = c(0,10))
-hist(d5h[,25],main="D4Five day training\n + no lesion",breaks=8,ylim = c(0,10))
-hist(d5sh[,25],main="D4 Five day training\n + lesion",breaks=8,ylim = c(0,10))
-hist(d5h[,26],main="D5Five day training\n + no lesion",breaks=8,ylim = c(0,10))
-hist(d5sh[,26],main="D5 Five day training\n + lesion",breaks=8,ylim = c(0,10))
+hist(d5sh[,24],main="D3 Five day training\n + lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
+hist(d3h[,24],main="D3 Three day training\n + no lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
+hist(d3sh[,24],main="D3 Three day training\n + lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
+hist(d5h[,25],main="D4Five day training\n + no lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
+hist(d5sh[,25],main="D4 Five day training\n + lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
+hist(d5h[,26],main="D5Five day training\n + no lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
+hist(d5sh[,26],main="D5 Five day training\n + lesion",breaks=8,ylim = c(0,10),xlab = "Time in maze")
 ```
 
 #NORMAL DISTIBUTION?
@@ -252,18 +252,7 @@ summary(d2.aov)
 
 ```
 
-```{r mauchly}
-datam <- data.frame(id, group,tasktime)
-matrix <- with(datam, cbind(tasktime[group=="d5h"], tasktime[group=="d5sh"], tasktime[group=="d3h"],tasktime[group=="d3sh"])) 
-model<-lm(matrix~1)
-design<-factor(c("d5h","d5sh","d3h","d3sh"))
-library(car)
-options(contrasts=c("contr.sum", "contr.poly"))
-aov <- Anova(model, idata=data.frame(design), idesign=~design, type="III")
-summary(aov, multivariate=F)
-
-```
-
+Mauchly's test for sphericity was not met, so the degrees of freedom
 ```{r contrasts, echo=FALSE}
 library(afex)
 library(multcomp)
@@ -388,29 +377,46 @@ cordata<-cbind(data1[,3:21],data1[,24],data1[,26])
 final<-c(data1[c(1:24,73:90),26],data1[c(25:72),24])
 pooledcordata<-cbind(data1[,3:21],final)
 cordataD5H<-cordata[1:24,c(1:6,10:19,21)]
-cordataD3H<-cordata[25:48,1:20]
+cordataD3H<-cordata[25:48,c(1:6,10:20)]
 cordataD5SH<-cordata[73:90,c(1:19,21)]
 cordataD3SH<-cordata[49:72,1:20]
+colnames(cordataD5H)<-c(colnames(cordata[,c(1:6,10:19)]),"performance")
+colnames(cordataD3H)<-c(colnames(cordata[,c(1:6,10:19)]),"performance")
+colnames(cordataD5SH)<-c(colnames(cordata[,c(1:19)]),"performance")
+colnames(cordataD3SH)<-c(colnames(cordata[,c(1:19)]),"performance")
 
-resp<-rcorr(as.matrix(pooledcordata))
+resp<-rcorr(as.matrix(pooledcordata),type="pearson")
 matrixp<-flattenCorrMatrix(resp$r, resp$P)
 print(matrixp[172:190,])
 
 res1<-rcorr(as.matrix(cordataD5H))
+print(res1)
 matrix1<-flattenCorrMatrix(res1$r, res1$P)
 print(matrix1[121:136,])
 
+cor.test(cordataD5H$STLD,cordataD5H$performance)
+cor.test(cordataD5H$STMD,cordataD5H$performance)
+
 res2<-rcorr(as.matrix(cordataD3H))
 matrix2<-flattenCorrMatrix(res2$r, res2$P)
-print(matrix2[172:190,])
+print(matrix2[121:136,])
+
+cor.test(cordataD3H$PERIRH,cordataD3H$performance)
 
 res3<-rcorr(as.matrix(cordataD3SH))
 matrix3<-flattenCorrMatrix(res3$r, res3$P)
 print(matrix3[172:190,])
 
+cor.test(cordataD3SH$ENTORH,cordataD3SH$performance)
+cor.test(cordataD3SH$CINGULAR,cordataD3SH$performance)
+cor.test(cordataD3SH$VISUAL,cordataD3SH$performance)
+
 res4<-rcorr(as.matrix(cordataD5SH))
 matrix4<-flattenCorrMatrix(res4$r, res4$P)
 print(matrix4[172:190,])
+
+cor.test(cordataD5SH$PRELIMB,cordataD5SH$performance)
+
 ```
 
 First took all the data to see whether they are normally distributed or not:
@@ -418,8 +424,6 @@ per brain area per group
 4 groups, 
 lesion vs. non lesion
 depending on normality: t test or wilcox
-
-
 
 #NORMAL DISTIBUTION?
 We will carry out the shapiro-Wilk test. If p>a (bigger than 0.05 generally), the data is normal.
@@ -450,19 +454,28 @@ d3h[,c(15,21)] are not normally distributed
 d3sh[,c(3,8,2,14,16,18)] is not normally distributed.
 You have a small sample size but the population is actually normally distributed, so we will use a parametric test anyway
 
-# ok fuck this shit let's do a t test for all these fuckers
+#T tests
 
 t.test(collumn 1, collumn 2)
  skip collumns 9:11 for d3h vs d5h
 ```{r fucking t test}
+datac<-colnames(data)
 for(i in c(3:8,12:21)){
+  print(i)
+  print(datac[i])
+  print(d3h[,i])
+  print(d5h[,i])
   print(t.test(d3h[,i],d5h[,i]))
 }  
 for(i in c(3:21)){
+  print(i)
+  print(datac[i])
+  print(d3sh[,i])
+  print(d5sh[,i])
   print(t.test(d3sh[,i],d5sh[,i]))
 }
 ```
-##FIGURETIME.
+##Figures for T test
 
 ```{r figures, echo=FALSE}
 meand3h<-vector()
@@ -512,7 +525,7 @@ print(p)
 ```
 
 ```{r plotblock 2,echo=FALSE}
-whut <- c("STLD","STMD","AMBASLAT","AMLAT","ENTORH","PERIRH","CA1","CA2","DG","CINGULAR","PRELIMB","SOMSENS","SUBICULUM","ACCCORE","ACCSHELL","VISUAL","PIRIFORM","PARIETAL","RETROSPLEN")
+whut <- c("STLD","STMD","AMBASLAT","AMLAT","ENTORH","PERIRH","CA1","CA3","DG","CINGULAR","PRELIMB","SOMSENS","SUBICULUM","ACCCORE","ACCSHELL","VISUAL","PIRIFORM","PARIETAL","RETROSPLEN")
 dumb<-c(1:19)
 x<-data.frame(whut,dumb)
 x$whut<-factor(x$whut, levels=x$whut)
